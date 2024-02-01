@@ -1,4 +1,4 @@
-import 'package:composants/exemple_one.dart';
+// import 'package:composants/exemple_one.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:glassmorphism/glassmorphism.dart';
@@ -22,8 +22,33 @@ class ConnexionForm extends StatefulWidget {
   State<ConnexionForm> createState() => _ConnexionFormState();
 }
 
-class _ConnexionFormState extends State<ConnexionForm> {
-  // GlobalKey<Form> loginFormKey = GlobalKey();
+class _ConnexionFormState extends State<ConnexionForm>
+    with WidgetsBindingObserver {
+  bool _isImageVisible = true;
+  GlobalKey<FormState> loginFormKey = GlobalKey<FormState>();
+  FocusNode pseudoFocusNode = FocusNode();
+  FocusNode passwordFocusNode = FocusNode();
+  TextEditingController pseudoController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    passwordFocusNode.addListener(_onFocusChanged);
+    pseudoFocusNode.addListener(_onFocusChanged);
+  }
+
+  void _onFocusChanged() {
+    setState(() {
+      if (pseudoFocusNode.hasFocus || passwordFocusNode.hasFocus) {
+        _isImageVisible = false;
+      } else {
+        _isImageVisible = true;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.sizeOf(context);
@@ -31,20 +56,34 @@ class _ConnexionFormState extends State<ConnexionForm> {
       child: Container(
         height: size.height,
         width: size.width,
-        decoration: BoxDecoration(color: Color(0xFF718f94)),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.bottomLeft,
+            end: Alignment.topRight,
+            colors: [
+              Color(0xFFbfc8ad),
+              Color(0xFF90b494),
+              Color(0xFF718f94),
+            ],
+          ),
+        ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           child: SingleChildScrollView(
             child: Form(
-              // key: loginFormKey,
+              key: loginFormKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(height: size.height * 0.1),
+                  SizedBox(
+                    height: _isImageVisible
+                        ? size.height * 0.1
+                        : size.height * 0.05,
+                  ),
                   GlassmorphicContainer(
-                    width: 200,
-                    height: 200,
+                    width: _isImageVisible ? 200 : 150,
+                    height: _isImageVisible ? 200 : 150,
                     borderRadius: 60,
                     blur: 20,
                     alignment: Alignment.bottomCenter,
@@ -53,8 +92,8 @@ class _ConnexionFormState extends State<ConnexionForm> {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          Color(0xFFffffff).withOpacity(0.1),
-                          Color(0xFFFFFFFF).withOpacity(0.05),
+                          const Color(0xFFffffff).withOpacity(0.1),
+                          const Color(0xFFFFFFFF).withOpacity(0.05),
                         ],
                         stops: const [
                           0.1,
@@ -64,8 +103,8 @@ class _ConnexionFormState extends State<ConnexionForm> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Color(0xFF718f94).withOpacity(0.5),
-                        Color((0xFF718f94)).withOpacity(0.5),
+                        const Color(0xFF718f94).withOpacity(0.5),
+                        const Color(0xFF718f94).withOpacity(0.5),
                       ],
                     ),
                     child: Padding(
@@ -85,9 +124,9 @@ class _ConnexionFormState extends State<ConnexionForm> {
                       ),
                     ),
                   ),
-                  SizedBox(height: size.height * 0.05),
+                  SizedBox(height: size.height * 0.04),
                   RichText(
-                    text: TextSpan(
+                    text: const TextSpan(
                       text: 'Flutter',
                       style: TextStyle(
                         color: Colors.white,
@@ -119,14 +158,18 @@ class _ConnexionFormState extends State<ConnexionForm> {
                     ],
                   ),
                   SizedBox(height: size.height * 0.05),
-                  const CustomTextFormField(
+                  CustomTextFormField(
                     label: 'Pseudo',
                     icon: CupertinoIcons.person_2_fill,
+                    focusNode: pseudoFocusNode,
+                    inputController: pseudoController,
                   ),
                   SizedBox(height: size.height * 0.02),
-                  const CustomTextFormField(
+                  CustomTextFormField(
                     label: 'Mot de passe',
                     icon: CupertinoIcons.lock,
+                    focusNode: passwordFocusNode,
+                    inputController: passwordController,
                   ),
                   SizedBox(height: size.height * 0.02),
                   SizedBox(
@@ -135,13 +178,13 @@ class _ConnexionFormState extends State<ConnexionForm> {
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.white,
-                        backgroundColor: Color(0xFF048594),
+                        backgroundColor: const Color(0xFF048594),
                         elevation: 5,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(50),
                         ),
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
                       ),
                       child: Text(
                         "CONNEXION",
@@ -164,14 +207,21 @@ class _ConnexionFormState extends State<ConnexionForm> {
 
 class CustomTextFormField extends StatelessWidget {
   const CustomTextFormField(
-      {super.key, required this.label, required this.icon});
+      {super.key,
+      required this.label,
+      required this.icon,
+      required this.focusNode,
+      required this.inputController});
   final String label;
   final IconData icon;
+  final FocusNode focusNode;
+  final TextEditingController inputController;
 
   @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.sizeOf(context);
     return GlassmorphicContainer(
-      width: 350,
+      width: size.width * 0.85,
       height: 50,
       borderRadius: 60,
       blur: 20,
@@ -181,10 +231,10 @@ class CustomTextFormField extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFFffffff).withOpacity(0.1),
-            Color(0xFFFFFFFF).withOpacity(0.05),
+            const Color(0xFFffffff).withOpacity(0.1),
+            const Color(0xFFFFFFFF).withOpacity(0.05),
           ],
-          stops: [
+          stops: const [
             0.1,
             1,
           ]),
@@ -192,11 +242,13 @@ class CustomTextFormField extends StatelessWidget {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color(0xFFffffff).withOpacity(0.5),
-          Color((0xFFFFFFFF)).withOpacity(0.5),
+          const Color(0xFFffffff).withOpacity(0.5),
+          const Color((0xFFFFFFFF)).withOpacity(0.5),
         ],
       ),
       child: TextFormField(
+        focusNode: focusNode,
+        controller: inputController,
         expands: true,
         maxLines: null,
         textAlignVertical: TextAlignVertical.center,
@@ -218,7 +270,7 @@ class CustomTextFormField extends StatelessWidget {
             borderRadius: BorderRadius.all(Radius.circular(60)),
           ),
           contentPadding:
-              const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              const EdgeInsets.symmetric(vertical: 10, horizontal: 45),
           prefixIcon: Container(
             decoration: const BoxDecoration(
               color: Colors.white,
